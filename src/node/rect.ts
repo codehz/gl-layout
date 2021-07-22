@@ -1,0 +1,1 @@
+const dynamic = new Float32Array(8);
