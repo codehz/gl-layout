@@ -44,8 +44,7 @@ float aastep(float threshold, float value) {
 }
 
 float inbound(vec2 p, vec2 xy, vec2 wh) {
-  float value =
-      -sdRoundRect((p - xy - wh / 2.0), wh / 2.0, vec4(radius * scale));
+  float value = -sdRoundRect((p - xy - wh / 2.0), wh / 2.0, vec4(radius));
   return clamp(value, 0.0, 1.0);
 }
 void main() {
@@ -56,6 +55,6 @@ void main() {
   vec4 ocolor = vec4(color.rgb, 1.0);
   float pa = p * color.a;
   vec4 blur = blur(v_uv);
-  gl_FragColor = p * (mix(blur, ocolor, color.a)) +
-                 (1.0 - p) * texture2D(prev, v_uv);
+  gl_FragColor =
+      p * (mix(blur, ocolor, color.a)) + (1.0 - p) * texture2D(prev, v_uv);
 }
