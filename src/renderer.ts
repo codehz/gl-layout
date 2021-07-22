@@ -3,13 +3,16 @@ import { current, swap } from "./framebuffers";
 import blit from "./node/blit";
 import { viewport } from "./resize";
 
-type PropsType<
-  T extends string | typeof nodeList | Function,
-> = T extends (obj: infer Props) => JSX.Element ? Omit<Props, "viewport">
+type PropsType<T extends string | typeof nodeList | Function> = T extends (
+  obj: infer Props
+) => JSX.Element
+  ? Omit<Props, "viewport">
   : T extends (obj: infer Props, prev: WebGLTexture) => JSX.Element
-    ? Omit<Props, "viewport">
-  : T extends () => JSX.Element ? {}
-  : string extends T ? any
+  ? Omit<Props, "viewport">
+  : T extends () => JSX.Element
+  ? {}
+  : string extends T
+  ? any
   : never;
 
 export function createNode<T extends string | typeof nodeList | Function>(
@@ -18,7 +21,7 @@ export function createNode<T extends string | typeof nodeList | Function>(
   ...children: any[]
 ): JSX.Element {
   if (typeof tag === "function") {
-    return tag(props, ...children);
+    return Object.assign(tag(props), { children });
   } else if (tag === nodeList) {
     return () => {
       for (const item of children) {
@@ -38,6 +41,8 @@ export function createNode<T extends string | typeof nodeList | Function>(
     };
   } else if (tag === "blit") {
     return Object.assign(blit(), { nofb: true });
+  } else if (tag === "swap") {
+    return Object.assign(() => swap(), { nofb: true });
   }
   throw new Error(`invalid tag ${tag}`);
 }
@@ -49,15 +54,17 @@ declare global {
     interface IntrinsicElements {
       reset: { color?: [number, number, number, number] };
       blit: {};
+      swap: {};
     }
 
     interface Element {
       (
-        { viewport }: { viewport: [number, number] },
-        prev: WebGLTexture,
+        opts: { viewport: [number, number]; scale: number },
+        prev: WebGLTexture
       ): void;
 
       nofb?: boolean;
+      children?: Element[];
     }
   }
 }
@@ -70,7 +77,12 @@ export function render(node: JSX.Element) {
   } else {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
-  node({ viewport: vp }, tx);
+  node({ viewport: vp, scale: devicePixelRatio }, tx);
+  if (node.children) {
+    for (const item of node.children) {
+      render(item);
+    }
+  }
   if (node.length == 2) {
     swap();
   }

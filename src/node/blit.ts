@@ -16,6 +16,7 @@ const uniforms = {
 
 export default () => (_: {}, prev: WebGLTexture) => {
   gl.useProgram(program);
+  gl.disable(gl.BLEND);
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, prev);
   gl.uniform1i(uniforms.source, 0);

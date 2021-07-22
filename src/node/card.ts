@@ -20,20 +20,23 @@ const uniforms = {
 } as const;
 
 export default (opts: {
-  color: [number, number, number, number];
-  rect: [number, number, number, number];
-  radius: number;
-  scale: number;
-}) =>
-  ({ viewport }: { viewport: [number, number] }, prev: WebGLTexture) => {
+    color: [number, number, number, number];
+    rect: [number, number, number, number];
+    radius: number;
+  }) =>
+  (
+    { viewport, scale }: { viewport: [number, number]; scale: number },
+    prev: WebGLTexture
+  ) => {
     gl.useProgram(program);
+    gl.disable(gl.BLEND);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, prev);
     gl.uniform1i(uniforms.prev, 0);
     gl.uniform4fv(uniforms.color, opts.color);
     gl.uniform4fv(uniforms.rect, opts.rect);
     gl.uniform1f(uniforms.radius, opts.radius);
-    gl.uniform1f(uniforms.scale, opts.scale);
+    gl.uniform1f(uniforms.scale, scale);
     gl.uniform2fv(uniforms.viewport, viewport);
     gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
     gl.vertexAttribPointer(attrs.uv, 2, gl.FLOAT, false, 8, 0);

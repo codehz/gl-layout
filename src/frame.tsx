@@ -1,6 +1,7 @@
-import Card from "./node/card";
+import Card from "./node/Card";
 import { gl } from "./canvas";
 import { createNode, nodeList, render } from "./renderer";
+import Rect from "./node/Rect";
 
 let tick = 0;
 
@@ -10,7 +11,7 @@ export default () => {
 
   render(
     <>
-      <reset color={[1, 1, 1, 1]} />
+      <reset color={[0, 0, 0, 1]} />
       <Card
         color={[1, 0, 0, 1]}
         rect={[
@@ -20,14 +21,26 @@ export default () => {
           120,
         ]}
         radius={10}
-        scale={devicePixelRatio}
-      />
+      >
+        <Rect
+          color={[1, 0, 0, 0.5]}
+          rect={[100, 120, 500, 20]}
+        />
+      </Card>
       <Card
         color={[1, 1, 1, 0.5]}
         rect={[30, 30, 200, 200]}
         radius={10}
-        scale={devicePixelRatio}
-      />
+      >
+        <Rect
+          color={[0, 1, 0, 0.2]}
+          rect={[40, 40, 50, 50]}
+        />
+        <Rect
+          color={[0, 0, 1, 0.5]}
+          rect={[140, 40, 50, 50]}
+        />
+      </Card>
       <Card
         color={[0, 1, 1, 0.3]}
         rect={[
@@ -37,8 +50,12 @@ export default () => {
           120,
         ]}
         radius={10}
-        scale={devicePixelRatio}
-      />
+      >
+        <Rect
+          color={[1, 0, 1, 0.5]}
+          rect={[120, 120, 50, 50]}
+        />
+      </Card>
       <blit />
     </>,
   );
