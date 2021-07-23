@@ -3,6 +3,7 @@ import frag from "./card.frag?raw";
 import { useProgram } from "../loader";
 import { gl } from "../canvas";
 import { quadBuffer } from "../common";
+import { RenderFn } from "../renderer";
 
 const program = useProgram(vert, frag);
 
@@ -23,9 +24,14 @@ export default (opts: {
     color: [number, number, number, number];
     rect: [number, number, number, number];
     radius: number;
+    children?: JSX.Element | JSX.Element[];
   }) =>
   (
-    { viewport, scale }: { viewport: [number, number]; scale: number },
+    {
+      viewport,
+      scale,
+      render,
+    }: { viewport: [number, number]; scale: number; render: RenderFn },
     prev: WebGLTexture
   ) => {
     gl.useProgram(program);
@@ -42,4 +48,5 @@ export default (opts: {
     gl.vertexAttribPointer(attrs.uv, 2, gl.FLOAT, false, 8, 0);
     gl.enableVertexAttribArray(attrs.uv);
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    render(opts.children);
   };

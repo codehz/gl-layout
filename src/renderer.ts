@@ -6,9 +6,9 @@ import { viewport } from "./resize";
 type PropsType<T extends string | typeof nodeList | Function> = T extends (
   obj: infer Props
 ) => JSX.Element
-  ? Omit<Props, "viewport">
+  ? Omit<Props, "children">
   : T extends (obj: infer Props, prev: WebGLTexture) => JSX.Element
-  ? Omit<Props, "viewport">
+  ? Omit<Props, "children">
   : T extends () => JSX.Element
   ? {}
   : string extends T
@@ -21,9 +21,16 @@ export function createNode<T extends string | typeof nodeList | Function>(
   ...children: any[]
 ): JSX.Element {
   if (typeof tag === "function") {
-    return Object.assign(tag(props), { children });
+    let additional: { children?: any[] } = {};
+    if (children.length <= 1) {
+      additional.children = children[0];
+    } else {
+      additional.children = children;
+    }
+    const temp = tag({ ...props, ...additional });
+    return temp;
   } else if (tag === nodeList) {
-    return () => {
+    return ({ render }) => {
       for (const item of children) {
         render(item);
       }
@@ -49,6 +56,14 @@ export function createNode<T extends string | typeof nodeList | Function>(
 
 export const nodeList: unique symbol = Symbol("node-list");
 
+export type GenElement =
+  | undefined
+  | false
+  | JSX.Element
+  | (undefined | false | JSX.Element)[];
+
+export type RenderFn = (node: GenElement) => void;
+
 declare global {
   namespace JSX {
     interface IntrinsicElements {
@@ -59,17 +74,31 @@ declare global {
 
     interface Element {
       (
-        opts: { viewport: [number, number]; scale: number },
+        opts: {
+          viewport: [number, number];
+          scale: number;
+          render: RenderFn;
+        },
         prev: WebGLTexture
       ): void;
 
       nofb?: boolean;
-      children?: Element[];
+    }
+
+    interface ElementChildrenAttribute {
+      children: {};
     }
   }
 }
 
-export function render(node: JSX.Element) {
+export function render(node: GenElement) {
+  if (!node) return;
+  if (Array.isArray(node)) {
+    for (const item of node) {
+      render(item);
+    }
+    return;
+  }
   const [fb, tx] = current();
   const vp = viewport();
   if (!node.nofb) {
@@ -77,12 +106,7 @@ export function render(node: JSX.Element) {
   } else {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
-  node({ viewport: vp, scale: devicePixelRatio }, tx);
-  if (node.children) {
-    for (const item of node.children) {
-      render(item);
-    }
-  }
+  node({ viewport: vp, scale: devicePixelRatio, render }, tx);
   if (node.length == 2) {
     swap();
   }

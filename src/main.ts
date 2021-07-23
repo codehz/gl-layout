@@ -4,7 +4,7 @@ import "./style.css";
 import frame from "./frame";
 
 function raf() {
-  frame();
+  if (document.visibilityState == "visible") frame();
   requestAnimationFrame(raf);
 }
 
